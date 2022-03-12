@@ -9,6 +9,8 @@ from django.shortcuts import render
 import cv2
 from django.views.decorators import gzip
 from matplotlib.style import context
+
+import PaginaDjango
 from .forms import *
 from PaginaDjango import resnet50
 
@@ -16,7 +18,13 @@ from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from msrest.authentication import CognitiveServicesCredentials
 import os
 import shutil
+import tensorflow as tf
+from tensorflow import keras
+import pathlib
 import numpy as np
+
+#from tensorflow.python.keras.models import load_model
+#from tensorflow.python.keras.models import model_from_json
 
 # --Cotraseñas AZURE--------
 os.system("cls")
@@ -211,7 +219,7 @@ def DatosEntr(request):
     # ListaObjeto = {"ListObj": listaOb}
     # contexto.update(ListaObjeto)
     return contexto
-# ----------Entrenamiento----------
+# ----------Pagina Entrenamiento----------
 
 
 def Train(request):
@@ -236,7 +244,7 @@ def Train(request):
             os.mkdir('PaginaDjango/Datos')
     return render(request, "Entrenamiento.html", contexto)
 
-# ---- Entrenamiento-----------
+# ---- Función Entrenamiento-----------
 
 
 def Entrenando(request):
@@ -244,7 +252,31 @@ def Entrenando(request):
     contexto = {"SelecREn": SelecREn,
                 "Obj1En": Obj1En, "Obj2En": Obj2En}
     resnet50.Entrenar()
+    modelo_final = CargarModelo("modelo.model", "PaginaDjango/Datos")
     return render(request, "Entrenamiento.html", contexto)
+
+
+# ----Carga de modelo------
+def CargarModelo(modelo, data_dir):
+    print("-------Cargando modelo----------")
+    new_model = tf.keras.models.load_model(modelo)
+
+    data_dir = pathlib.Path(data_dir)
+
+    img_height, img_width = 180, 180
+    batch_size = 32
+    train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+        data_dir,
+        validation_split=0.2,
+        subset="training",
+        seed=123,
+        label_mode='categorical',
+        image_size=(img_height, img_width),
+        batch_size=batch_size)
+    print("-------Modelo cargado----------")
+
+    return new_model, train_ds
+
 # --Obtener objeto de red-------
 
 
