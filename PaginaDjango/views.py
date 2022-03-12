@@ -252,7 +252,9 @@ def Entrenando(request):
     contexto = {"SelecREn": SelecREn,
                 "Obj1En": Obj1En, "Obj2En": Obj2En}
     resnet50.Entrenar()
-    modelo_final = CargarModelo("modelo.model", "PaginaDjango/Datos")
+    global modelo_final, train_ds
+    modelo_final, train_ds = CargarModelo("modelo.model", "PaginaDjango/Datos")
+    print("Modelo listo para usar")
     return render(request, "Entrenamiento.html", contexto)
 
 
